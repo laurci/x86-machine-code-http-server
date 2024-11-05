@@ -12,8 +12,10 @@ use isa::{
 const AF_INET: u8 = 0x02;
 const SOCK_STREAM: u8 = 0x01;
 
+const SYS_EXIT: u32 = 0x01;
 const SYS_READ: u32 = 0x03;
 const SYS_WRITE: u32 = 0x04;
+const SYS_CLOSE: u32 = 0x06;
 const SYS_SOCKET: u32 = 0x167;
 const SYS_BIND: u32 = 0x169;
 const SYS_LISTEN: u32 = 0x16b;
@@ -117,7 +119,7 @@ fn main() -> Result<()> {
     program.add(bytes![ISA_INT, 0x80]);
 
     // close(clientfd)
-    program.add(bytes![ISA_MOV_IMM32_TO_R32 + REG_EAX] + 0x06u32.into_bytes_le());
+    program.add(bytes![ISA_MOV_IMM32_TO_R32 + REG_EAX] + SYS_CLOSE.into_bytes_le());
     program.add(bytes![ISA_POP_R32 + REG_EBX]); // copy stack value (clientfd) to EBX
     program.add(bytes![ISA_PUSH_R32 + REG_EBX]);
     program.add(bytes![ISA_INT, 0x80]);
@@ -131,7 +133,7 @@ fn main() -> Result<()> {
     let jump_size = (accept_client - here) as i8 - 2;
     program.add(bytes![ISA_JMP_REL8] + jump_size.into_bytes());
 
-    program.add(bytes![ISA_MOV_IMM32_TO_R32 + REG_EAX] + 0x01u32.into_bytes_le());
+    program.add(bytes![ISA_MOV_IMM32_TO_R32 + REG_EAX] + SYS_EXIT.into_bytes_le());
     program.add(bytes![ISA_MOV_IMM32_TO_R32 + REG_EBX] + 69u32.into_bytes_le());
     program.add(bytes![ISA_INT, 0x80]);
 
